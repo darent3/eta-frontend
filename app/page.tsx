@@ -3,24 +3,52 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
+// Define the Article type from Wagtail API
+interface WagtailArticle {
+  id: number;
+  title: string;
+  meta: {
+    first_published_at: string;
+    html_url: string;
+  };
+}
+
+// Define the Document type from Wagtail API
+interface WagtailDocument {
+  id: number;
+  title: string;
+  meta: {
+    download_url: string;
+  };
+}
+
+// Define the hardcoded article type
+interface RecentArticle {
+  id: number;
+  title: string;
+  description: string;
+  date: string;
+  category: "ETA Updates" | "Other Content";
+}
+
 export default function Home() {
   const [showDetails, setShowDetails] = useState(false);
-  const [articles, setArticles] = useState([]);
-  const [documents, setDocuments] = useState([]);
+  const [articles, setArticles] = useState<WagtailArticle[]>([]);
+  const [documents, setDocuments] = useState<WagtailDocument[]>([]);
 
   // Fetch data from Wagtail API
   useEffect(() => {
     async function fetchData() {
       try {
         // Fetch pages (articles)
-        const pagesRes = await fetch('http://localhost:8000/api/v2/pages/');
+        const pagesRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/pages/`);
         const pagesData = await pagesRes.json();
-        setArticles(pagesData.items);
+        setArticles(pagesData.items || []);
 
         // Fetch documents
-        const docsRes = await fetch('http://localhost:8000/api/v2/documents/');
+        const docsRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v2/documents/`);
         const docsData = await docsRes.json();
-        setDocuments(docsData.items);
+        setDocuments(docsData.items || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       }
@@ -38,7 +66,7 @@ export default function Home() {
   };
 
   // Recent articles for preview (fallback if API is empty)
-  const recentArticles = [
+  const recentArticles: RecentArticle[] = [
     {
       id: 1,
       title: "Election Integrity Study Reveals Discrepancies",
@@ -168,7 +196,7 @@ export default function Home() {
               Articles from Wagtail
             </h2>
             <div className="space-y-6">
-              {articles.map(article => (
+              {articles.map((article) => (
                 <div key={article.id} className="border-b border-gray-200 pb-6">
                   <h3 className="font-bold text-gray-900 mb-2 text-lg">{article.title}</h3>
                   <p className="text-xs text-gray-500 mb-2">
@@ -192,7 +220,7 @@ export default function Home() {
               Documents from Wagtail
             </h2>
             <div className="space-y-6">
-              {documents.map(doc => (
+              {documents.map((doc) => (
                 <div key={doc.id} className="border-b border-gray-200 pb-6">
                   <h3 className="font-bold text-gray-900 mb-2 text-lg">{doc.title}</h3>
                   <a 
@@ -218,8 +246,8 @@ export default function Home() {
             </h2>
             <div className="space-y-6">
               {recentArticles
-                .filter(a => a.category === "ETA Updates")
-                .map(article => (
+                .filter((a) => a.category === "ETA Updates")
+                .map((article) => (
                   <div key={article.id} className="border-b border-gray-200 pb-6">
                     <h3 className="font-bold text-gray-900 mb-2 text-lg">{article.title}</h3>
                     <p className="text-gray-600 text-sm mb-3">{article.description}</p>
@@ -236,8 +264,8 @@ export default function Home() {
             </h2>
             <div className="space-y-6">
               {recentArticles
-                .filter(a => a.category === "Other Content")
-                .map(article => (
+                .filter((a) => a.category === "Other Content")
+                .map((article) => (
                   <div key={article.id} className="border-b border-gray-200 pb-6">
                     <h3 className="font-bold text-gray-900 mb-2 text-lg">{article.title}</h3>
                     <p className="text-gray-600 text-sm mb-3">{article.description}</p>
